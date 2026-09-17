@@ -1,0 +1,41 @@
+:root {
+  --plate: #f3f4f6;
+  --card: #f3f4f6;
+  --ink: #1a1a1a;
+  --ash: #6b6b6b;
+  --ash-strong: #424242;
+  --red: #b71c1c;
+  --green: #2e7d32;
+  --white: #ffffff;
+  --r-card: 12px;
+  --r-input: 10px;
+  --r-pill: 999px;
+  --shadow-up: 6px 6px 14px rgba(0, 0, 0, 0.08), -4px -4px 10px rgba(255, 255, 255, 0.9);
+  --shadow-in: inset 4px 4px 8px rgba(0, 0, 0, 0.06), inset -3px -3px 8px rgba(255, 255, 255, 0.8);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--plate);
+  color: var(--ink);
+}
+
+h1,
+h2,
+.wordmark {
+  font-family: var(--font-display);
+}
