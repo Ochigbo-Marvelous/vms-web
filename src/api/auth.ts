@@ -17,19 +17,20 @@ type RawMembership = {
   status?: string;
   role?: string;
   role_name?: string;
+  role_slug?: string;
+  roleSlug?: string;
   billing_status?: string;
   billingStatus?: string;
+  can_check_in?: boolean;
+  canCheckIn?: boolean;
+  can_view_all?: boolean;
+  canViewAll?: boolean;
 };
 
 type RawAuthResponse = {
   token?: string;
-  user?: Partial<AuthUser> & {
-    id?: number;
-    memberships?: RawMembership[];
-    organizations?: RawMembership[];
-  };
+  user?: Partial<AuthUser> & { id?: number };
   memberships?: RawMembership[];
-  organizations?: RawMembership[];
   organization?: { id?: number; name?: string };
 };
 
@@ -39,11 +40,7 @@ export type LoginInput = {
 };
 
 function asMembership(row: RawMembership): Membership | null {
-  const organizationId =
-    row.organization_id ??
-    row.organizationId ??
-    row.organization?.id;
-
+  const organizationId = row.organization_id ?? row.organizationId ?? row.organization?.id;
   if (typeof organizationId !== "number") return null;
 
   return {
@@ -55,19 +52,17 @@ function asMembership(row: RawMembership): Membership | null {
       "Organization",
     status: row.status ?? "approved",
     role: row.role ?? row.role_name ?? "Staff",
+    roleSlug: row.role_slug ?? row.roleSlug ?? "",
     billingStatus: row.billing_status ?? row.billingStatus ?? "trial",
+    canCheckIn: Boolean(row.can_check_in ?? row.canCheckIn),
+    canViewAll: Boolean(row.can_view_all ?? row.canViewAll),
   };
 }
 
 function collectMemberships(raw: RawAuthResponse): Membership[] {
-  const bags = [
-    raw.memberships,
-    raw.organizations,
-    raw.user?.memberships,
-    raw.user?.organizations,
-  ].filter(Boolean) as RawMembership[][];
-
-  const rows = bags.flat().map(asMembership).filter((row): row is Membership => row !== null);
+  const rows = (raw.memberships ?? [])
+    .map(asMembership)
+    .filter((row): row is Membership => row !== null);
 
   if (!rows.length && typeof raw.organization?.id === "number") {
     rows.push({
@@ -75,7 +70,10 @@ function collectMemberships(raw: RawAuthResponse): Membership[] {
       organizationName: raw.organization.name ?? "Organization",
       status: "approved",
       role: "Admin",
+      roleSlug: "admin",
       billingStatus: "trial",
+      canCheckIn: true,
+      canViewAll: true,
     });
   }
 
@@ -93,6 +91,7 @@ function asSession(raw: RawAuthResponse): Session {
   }
 
   const memberships = collectMemberships(raw);
+  const approved = memberships.find((row) => row.status === "approved");
 
   return {
     token: raw.token,
@@ -105,7 +104,7 @@ function asSession(raw: RawAuthResponse): Session {
       avatar_path: raw.user.avatar_path ?? null,
     },
     memberships,
-    activeOrganizationId: memberships[0]?.organizationId ?? null,
+    activeOrganizationId: approved?.organizationId ?? memberships[0]?.organizationId ?? null,
   };
 }
 
@@ -138,7 +137,7 @@ export function joinOrganization(input: JoinOrganizationInput) {
 }
 
 export function requestEmailChallenge(email: string, purpose: "register" | "join") {
-  return http<{ message: string }>("/api/auth/email/challenge", {
+  return http<{ message: string; debug_code?: string }>("/api/auth/email/challenge", {
     method: "POST",
     body: { email, purpose },
   });

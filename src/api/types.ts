@@ -7,12 +7,17 @@ export type AuthUser = {
   avatar_path: string | null;
 };
 
+export type DeskKind = "admin" | "security" | "staff";
+
 export type Membership = {
   organizationId: number;
   organizationName: string;
   status: "pending" | "approved" | "rejected" | string;
   role: string;
+  roleSlug: string;
   billingStatus: string;
+  canCheckIn: boolean;
+  canViewAll: boolean;
 };
 
 export type Session = {
@@ -24,7 +29,7 @@ export type Session = {
 
 export type RegisterOrganizationInput = {
   organization_name: string;
-  department_name: string;
+  department_name?: string;
   name: string;
   username: string;
   email: string;
@@ -35,10 +40,7 @@ export type RegisterOrganizationInput = {
 };
 
 export type JoinLookup = {
-  organization: {
-    id: number;
-    name: string;
-  };
+  organization: { id: number; name: string };
   roles: Array<{ id: number; name: string; slug: string }>;
   departments: Array<{ id: number; name: string }>;
 };
@@ -52,6 +54,33 @@ export type JoinOrganizationInput = {
   password: string;
   password_confirmation: string;
   role_id: number;
-  department_id: number;
+  department_id?: number | null;
   email_code: string;
+};
+
+export type HostHit = {
+  id: number;
+  name: string;
+  phone: string | null;
+  username: string;
+  avatar_path: string | null;
+  role: string | null;
+  department: string | null;
+};
+
+export type VisitRow = {
+  id: number;
+  visitor_name: string;
+  visitor_phone: string | null;
+  purpose: string | null;
+  status: string;
+  hold_reason: string | null;
+  host_id: number;
+  created_at: string;
+  host?: {
+    id: number;
+    name: string;
+    phone: string | null;
+    avatar_path?: string | null;
+  };
 };

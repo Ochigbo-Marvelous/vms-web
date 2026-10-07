@@ -293,49 +293,38 @@ const FAQS = [
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="hp-page">
-      <header className={`hp-header${menuOpen ? " is-open" : ""}`}>
-        <a className="hp-brand" href="#top" onClick={() => setMenuOpen(false)}>
+      <header className="hp-header">
+        <a className="hp-brand" href="#top">
           <img src="/hostpass-logo.png" alt="" />
           <span>HostPass</span>
         </a>
-        <button
-          className="hp-menu"
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span />
-          <span />
-        </button>
         <nav className="hp-nav">
-          <a href="#how" onClick={() => setMenuOpen(false)}>
+          <a href="#how">
             How it works
           </a>
-          <a href="#desks" onClick={() => setMenuOpen(false)}>
+          <a href="#desks">
             Desks
           </a>
-          <a href="#pricing" onClick={() => setMenuOpen(false)}>
+          <a href="#pricing">
             Pricing
           </a>
-          <a href="#roadmap" onClick={() => setMenuOpen(false)}>
+          <a href="#roadmap">
             Roadmap
           </a>
-          <a href="#faq" onClick={() => setMenuOpen(false)}>
+          <a href="#faq">
             Questions
           </a>
         </nav>
         <div className="hp-header-actions">
-          <Link className="hp-link" to="/signin" onClick={() => setMenuOpen(false)}>
+          <Link className="hp-link" to="/signin">
             Sign in
           </Link>
           <Link
             className="hp-btn hp-btn-primary"
             to="/create"
-            onClick={() => setMenuOpen(false)}
           >
             Create organization
           </Link>

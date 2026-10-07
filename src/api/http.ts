@@ -1,12 +1,10 @@
+import { readSession } from "../session/store";
+
 export class HttpError extends Error {
   readonly status: number;
   readonly fields: Record<string, string[]>;
 
-  constructor(
-    message: string,
-    status: number,
-    fields: Record<string, string[]> = {}
-  ) {
+  constructor(message: string, status: number, fields: Record<string, string[]> = {}) {
     super(message);
     this.name = "HttpError";
     this.status = status;
@@ -50,21 +48,18 @@ function fieldErrors(payload: unknown): Record<string, string[]> {
 }
 
 export async function http<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const session = readSession();
+  const token = options.token ?? session?.token ?? null;
+  const organizationId = options.organizationId ?? session?.activeOrganizationId ?? null;
+
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const headers = new Headers({ Accept: "application/json" });
 
-  const headers = new Headers({
-    Accept: "application/json",
-  });
-
-  if (options.body !== undefined) {
-    headers.set("Content-Type", "application/json");
-  }
-  if (options.token) {
-    headers.set("Authorization", `Bearer ${options.token}`);
-  }
-  if (options.organizationId != null && options.organizationId !== "") {
-    headers.set("X-Organization-Id", String(options.organizationId));
+  if (options.body !== undefined) headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (organizationId != null && organizationId !== "") {
+    headers.set("X-Organization-Id", String(organizationId));
   }
 
   try {
@@ -74,20 +69,14 @@ export async function http<T>(path: string, options: RequestOptions = {}): Promi
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: options.signal ?? controller.signal,
     });
-
     const payload = await res.json().catch(() => null);
-
     if (!res.ok) {
       throw new HttpError(
-        firstMessage(
-          payload,
-          res.status === 402 ? "Organization is locked." : "Request failed."
-        ),
+        firstMessage(payload, res.status === 402 ? "Organization is locked." : "Request failed."),
         res.status,
-        fieldErrors(payload)
+        fieldErrors(payload),
       );
     }
-
     return payload as T;
   } catch (err) {
     if (err instanceof HttpError) throw err;
@@ -101,6 +90,5 @@ export async function http<T>(path: string, options: RequestOptions = {}): Promi
 }
 
 export function flattenFields(fields: Record<string, string[]>): string | null {
-  const first = Object.values(fields).flat()[0];
-  return first ?? null;
+  return Object.values(fields).flat()[0] ?? null;
 }

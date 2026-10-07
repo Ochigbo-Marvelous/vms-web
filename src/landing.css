@@ -1566,3 +1566,39 @@ a.hp-link:hover,
 a.hp-btn:hover {
   text-decoration: none;
 }
+
+@media (max-width: 860px) {
+  .hp-menu {
+    display: none;
+  }
+
+  .hp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 14px 16px;
+  }
+
+  .hp-nav {
+    display: none;
+  }
+
+  .hp-header-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    padding: 0;
+  }
+
+  .hp-header-actions .hp-link,
+  .hp-header-actions .hp-btn {
+    width: auto;
+    height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}

@@ -17,6 +17,7 @@ import { AshDoodles } from "./AshDoodles";
 import { login, registerOrganization, requestEmailChallenge } from "../api/auth";
 import { flattenFields, HttpError } from "../api/http";
 import { writeSession } from "../session/store";
+import { activeMembership, deskKind, homePath } from "../desk/deskKind";
 
 type Mode = "sign" | "create";
 
@@ -86,23 +87,25 @@ export function AuthGate({ initialMode }: { initialMode: Mode }) {
   const checks = passwordChecks(org.password);
   const passwordOk = checks.length && checks.letter && checks.number;
   const passwordsMatch =
-    org.password_confirmation.length > 0 &&
-    org.password === org.password_confirmation;
+    org.password_confirmation.length > 0 && org.password === org.password_confirmation;
   const userChecks = usernameChecks(org.username);
   const usernameOk = userChecks.length && userChecks.charset;
+
+  function goDesk(session: Parameters<typeof writeSession>[0]) {
+    writeSession(session);
+    navigate(homePath(deskKind(activeMembership(session))), { replace: true });
+  }
 
   async function onSign(e: FormEvent) {
     e.preventDefault();
     setError("");
     setBusy(true);
-
     try {
       const session = await login({
         login: sign.login.trim(),
         password: sign.password,
       });
-      writeSession(session);
-      navigate("/desk", { replace: true });
+      goDesk(session);
     } catch (err) {
       if (err instanceof HttpError) {
         setError(flattenFields(err.fields) ?? err.message);
@@ -136,7 +139,6 @@ export function AuthGate({ initialMode }: { initialMode: Mode }) {
         setError("Passwords do not match.");
         return;
       }
-
       setBusy(true);
       try {
         await requestEmailChallenge(org.email.trim(), "register");
@@ -163,7 +165,7 @@ export function AuthGate({ initialMode }: { initialMode: Mode }) {
     try {
       const session = await registerOrganization({
         organization_name: org.organization_name.trim(),
-        department_name: org.department_name.trim(),
+        department_name: org.department_name.trim() || undefined,
         name: org.name.trim(),
         username: org.username.trim(),
         email: org.email.trim(),
@@ -172,8 +174,7 @@ export function AuthGate({ initialMode }: { initialMode: Mode }) {
         password_confirmation: org.password_confirmation,
         email_code: emailCode.trim(),
       });
-      writeSession(session);
-      navigate("/desk", { replace: true });
+      goDesk(session);
     } catch (err) {
       if (err instanceof HttpError) {
         setError(flattenFields(err.fields) ?? err.message);
@@ -280,12 +281,11 @@ export function AuthGate({ initialMode }: { initialMode: Mode }) {
                   <label className="ag-field">
                     <Layers />
                     <input
-                      placeholder="First department"
+                      placeholder="First department (optional)"
                       value={org.department_name}
                       onChange={(e) =>
                         setOrg({ ...org, department_name: e.target.value })
                       }
-                      required
                     />
                   </label>
                 </>
