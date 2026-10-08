@@ -13,6 +13,16 @@ export async function listVisits(status?: string): Promise<VisitRow[]> {
   return Array.isArray(inner) ? inner : inner?.data ?? [];
 }
 
+export async function listAudit(q: string, status: string): Promise<VisitRow[]> {
+  const params = new URLSearchParams();
+  if (q.trim()) params.set("q", q.trim());
+  if (status && status !== "all") params.set("status", status);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const raw = await http<{ data: VisitRow[] | { data: VisitRow[] } }>(`/api/visits${suffix}`);
+  const inner = raw.data;
+  return Array.isArray(inner) ? inner : inner?.data ?? [];
+}
+
 export async function checkIn(body: {
   visitor_name: string;
   visitor_phone?: string;

@@ -7,7 +7,9 @@ import DeskHomePage from "./pages/DeskHomePage";
 import PeoplePage from "./pages/PeoplePage";
 import StaffVisitorsPage from "./pages/StaffVisitorsPage";
 import GatePage from "./pages/GatePage";
+import AuditPage from "./pages/AuditPage";
 import { DeskShell } from "./desk/DeskShell";
+import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -22,9 +24,11 @@ export default function App() {
 
       <Route element={<DeskShell allow="admin" />}>
         <Route path="/admin" element={<DeskHomePage />} />
-        <Route path="/admin/people" element={<PeoplePage />} />
         <Route path="/admin/visitors" element={<StaffVisitorsPage />} />
-        <Route path="/admin/gate" element={<GatePage />} />
+        <Route path="/admin/audit" element={<AuditPage />} />
+        <Route path="/admin/people" element={<PeoplePage />} />
+        <Route path="/admin/gate" element={<Navigate to="/admin/audit" replace />} />
+        <Route path="/admin/settings" element={<SettingsPage />} />
       </Route>
 
       <Route element={<DeskShell allow="staff" />}>

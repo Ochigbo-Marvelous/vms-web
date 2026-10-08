@@ -17,8 +17,9 @@ const NAV: Record<DeskKind, { to: string; label: string; end?: boolean }[]> = {
   admin: [
     { to: "/admin", label: "Home", end: true },
     { to: "/admin/visitors", label: "Visitors" },
+    { to: "/admin/audit", label: "Audit" },
     { to: "/admin/people", label: "People" },
-    { to: "/admin/gate", label: "Gate" },
+    { to: "/admin/settings", label: "Settings" },
   ],
   security: [{ to: "/gate", label: "Gate", end: true }],
   staff: [{ to: "/staff", label: "Visitors", end: true }],
@@ -27,8 +28,7 @@ const NAV: Record<DeskKind, { to: string; label: string; end?: boolean }[]> = {
 function fileUrl(path: string | null) {
   if (!path) return "/hostpass-logo.png";
   if (path.startsWith("http")) return path;
-  const root =
-    (import.meta.env.VITE_API_URL as string | undefined) ?? "http://127.0.0.1:8000";
+  const root = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://127.0.0.1:8000";
   return `${root.replace(/\/$/, "")}/storage/${path.replace(/^\/+/, "")}`;
 }
 
@@ -97,17 +97,10 @@ export function DeskShell({ allow }: { allow: DeskKind }) {
             <em className="dk-org">{orgName}</em>
           </span>
         </NavLink>
-
-        <button
-          type="button"
-          className="hp-menu"
-          aria-label="Menu"
-          onClick={() => setOpen((v) => !v)}
-        >
+        <button type="button" className="hp-menu" aria-label="Menu" onClick={() => setOpen((v) => !v)}>
           <span />
           <span />
         </button>
-
         <nav className="hp-nav">
           {links.map((link) => (
             <NavLink
@@ -121,7 +114,6 @@ export function DeskShell({ allow }: { allow: DeskKind }) {
             </NavLink>
           ))}
         </nav>
-
         <div className="hp-header-actions">
           <button
             type="button"
@@ -135,7 +127,6 @@ export function DeskShell({ allow }: { allow: DeskKind }) {
           </button>
         </div>
       </header>
-
       <main className="dk-main">
         <Outlet />
       </main>
