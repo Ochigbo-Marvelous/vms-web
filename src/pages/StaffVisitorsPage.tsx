@@ -74,7 +74,7 @@ export default function StaffVisitorsPage() {
       <header className="vq-top">
         <div>
           <h1>Visitors</h1>
-          <p className="dk-lead">Your queue. Refreshes every 10 seconds.</p>
+          <p className="dk-lead">List Refreshes every 10 seconds.</p>
         </div>
         <div className="sv-switch" role="tablist">
           {TABS.map((tab) => (

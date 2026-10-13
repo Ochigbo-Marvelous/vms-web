@@ -78,7 +78,7 @@ export function DeskShell({ allow }: { allow: DeskKind }) {
     return () => {
       live = false;
     };
-  }, []);
+  }, [location.pathname]);
 
   const orgName = brand?.name || membership?.organizationName || "Desk";
 

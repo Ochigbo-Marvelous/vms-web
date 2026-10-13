@@ -188,21 +188,21 @@ export default function AuditPage() {
                 <th>Audit status</th>
               </tr>
             </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.visitor_name}</td>
-                  <td>{row.visitor_phone || "—"}</td>
-                  <td>{row.host?.name || "—"}</td>
-                  <td>{departmentOf(row)}</td>
-                  <td className="au-phone">{row.host?.phone || "—"}</td>
-                  <td>{row.purpose || "—"}</td>
-                  <td>{when(row.created_at)}</td>
-                  <td className={row.status === "declined" ? "is-bad" : "is-ok"}>{clearance(row)}</td>
-                  <td><span className={`au-pill is-${row.status}`}>{row.status.replaceAll("_", " ")}</span></td>
-                </tr>
-              ))}
-            </tbody>
+          <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td data-label="Visitor">{row.visitor_name}</td>
+              <td data-label="Phone">{row.visitor_phone || "—"}</td>
+              <td data-label="Host">{row.host?.name || "—"}</td>
+              <td data-label="Department">{departmentOf(row)}</td>
+              <td data-label="Host phone" className="au-phone">{row.host?.phone || "—"}</td>
+              <td data-label="Purpose">{row.purpose || "—"}</td>
+              <td data-label="Check-in">{when(row.created_at)}</td>
+              <td data-label="Clearance" className={row.status === "declined" ? "is-bad" : "is-ok"}>{clearance(row)}</td>
+              <td data-label="Status"><span className={`au-pill is-${row.status}`}>{row.status.replaceAll("_", " ")}</span></td>
+            </tr>
+          ))}
+          </tbody>
           </table>
           {rows.length === 0 ? <p className="au-empty">No logs for this filter.</p> : null}
         </div>

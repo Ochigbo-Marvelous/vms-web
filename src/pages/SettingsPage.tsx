@@ -57,26 +57,48 @@ export default function SettingsPage() {
   }, []);
 
   async function saveBrand(nextName: string, nextPrimary: string, nextSecondary: string) {
+    const session = readSession();
+    const orgId = organizationId();
+    if (!session || !orgId) {
+      setError("Sign in again.");
+      return;
+    }
+    if (!nextName.trim()) {
+      setError("Organization name cannot be empty.");
+      return;
+    }
+
     setBusy(true);
     setError("");
     setNotice("");
-    try {
-      await http("/api/organization/settings", {
-        method: "PATCH",
-        body: JSON.stringify({
-          name: nextName.trim(),
-          color_primary: nextPrimary,
-          color_secondary: nextSecondary,
-        }),
-      });
-      paint(nextPrimary, nextSecondary);
-      setNotice("Saved.");
-      await load();
-    } catch (err) {
-      setError(err instanceof HttpError ? flattenFields(err.fields) ?? err.message : "Request failed.");
-    } finally {
-      setBusy(false);
+
+    const root = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://127.0.0.1:8000";
+    const response = await fetch(`${root.replace(/\/$/, "")}/api/organization/settings`, {
+      method: "PATCH",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`,
+        "X-Organization-Id": String(orgId),
+      },
+      body: JSON.stringify({
+        name: nextName.trim(),
+        color_primary: nextPrimary,
+        color_secondary: nextSecondary,
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    setBusy(false);
+
+    if (!response.ok) {
+      setError(payload.message || "Save failed.");
+      return;
     }
+
+    paint(nextPrimary, nextSecondary);
+    setNotice("Saved.");
+    await load();
   }
 
   async function upload(file: File) {
@@ -104,7 +126,7 @@ export default function SettingsPage() {
     const payload = await response.json().catch(() => ({}));
     setBusy(false);
     if (!response.ok) {
-      setError(payload.message || "Logo was rejected. Use a jpg, png, or webp under 1 MB.");
+      setError(payload.message || payload.errors?.logo?.[0] || "Logo was rejected.");
       return;
     }
     setNotice("Logo saved.");
@@ -153,7 +175,7 @@ export default function SettingsPage() {
       {error ? <p className="ag-err">{error}</p> : null}
       {notice ? <p className="set-ok">{notice}</p> : null}
 
-      <section className="set-card">
+      <div className="set-card">
         <h2>Profile</h2>
         <div className="set-profile">
           {brand?.logo_path ? (
@@ -186,7 +208,7 @@ export default function SettingsPage() {
           </label>
           <button className="dk-copy" type="submit" disabled={busy}>Save profile</button>
         </form>
-      </section>
+      </div>
 
       <form
         className="set-card"
@@ -195,7 +217,7 @@ export default function SettingsPage() {
           void saveBrand(name, primary, secondary);
         }}
       >
-        <h2>Appearance</h2>
+        <h2>Branding</h2>
         <div className="set-colors">
           <label>
             Primary
@@ -230,7 +252,7 @@ export default function SettingsPage() {
         <b>{brand?.join_code || "Hidden"}</b>
         <div className="set-row">
           <button type="button" className="dk-copy" disabled={!brand?.join_code} onClick={() => navigator.clipboard.writeText(brand?.join_code || "")}>Copy</button>
-          <button type="button" className="dk-no" disabled={busy} onClick={() => void resetCode()}>Reset code</button>
+          <button type="button" className="dk-copy" disabled={busy} onClick={() => void resetCode()}>Reset code</button>
         </div>
       </section>
 

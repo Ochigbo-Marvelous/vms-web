@@ -1,159 +1,146 @@
-import { useEffect, useState, type FormEvent } from "react";
-import {
-  checkIn,
-  checkoutVisit,
-  listVisits,
-  searchHosts,
-} from "../api/visits";
-import { flattenFields, HttpError } from "../api/http";
+import { useEffect, useState } from "react";
+import { checkIn, checkoutVisit, listVisits, searchHosts } from "../api/visits";
 import type { HostHit, VisitRow } from "../api/types";
 
 export default function GatePage() {
-  const [q, setQ] = useState("");
-  const [hits, setHits] = useState<HostHit[]>([]);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [query, setQuery] = useState("");
+  const [hosts, setHosts] = useState<HostHit[]>([]);
   const [host, setHost] = useState<HostHit | null>(null);
-  const [visitor, setVisitor] = useState({ name: "", phone: "", purpose: "" });
-  const [today, setToday] = useState<VisitRow[]>([]);
-  const [error, setError] = useState("");
+  const [rows, setRows] = useState<VisitRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function loadToday() {
-    try {
-      setToday(await listVisits());
-    } catch {
-      /* ignore */
-    }
+  async function load() {
+    const list = await listVisits();
+    setRows(list);
   }
 
   useEffect(() => {
-    void loadToday();
-    const timer = window.setInterval(() => void loadToday(), 10000);
-    return () => window.clearInterval(timer);
+    void load();
+    const id = window.setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 8000);
+    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
-    if (q.trim().length < 2) {
-      setHits([]);
+    const q = query.trim();
+    if (q.length < 2) {
+      setHosts([]);
       return;
     }
-    const handle = window.setTimeout(() => {
-      void searchHosts(q.trim())
-        .then(setHits)
-        .catch(() => setHits([]));
-    }, 250);
-    return () => window.clearTimeout(handle);
-  }, [q]);
+    const id = window.setTimeout(async () => {
+      const hits = await searchHosts(q);
+      setHosts(hits);
+    }, 200);
+    return () => window.clearTimeout(id);
+  }, [query]);
 
-  async function onCheckIn(e: FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!host) {
-      setError("Pick a host.");
-      return;
-    }
+    if (!host) return;
     setBusy(true);
-    setError("");
+    setError(null);
     try {
       await checkIn({
-        visitor_name: visitor.name.trim(),
-        visitor_phone: visitor.phone.trim() || undefined,
-        purpose: visitor.purpose.trim() || undefined,
+        visitor_name: name.trim(),
+        visitor_phone: phone.trim() || undefined,
+        purpose: purpose.trim() || undefined,
         host_id: host.id,
       });
-      setVisitor({ name: "", phone: "", purpose: "" });
+      setName("");
+      setPhone("");
+      setPurpose("");
+      setQuery("");
       setHost(null);
-      setQ("");
-      setHits([]);
-      await loadToday();
-    } catch (err) {
-      if (err instanceof HttpError) {
-        setError(flattenFields(err.fields) ?? err.message);
-      }
+      setHosts([]);
+      await load();
+    } catch {
+      setError("Could not log visitor.");
     } finally {
       setBusy(false);
     }
   }
 
-  return (
-    <>
-      <h1>Gate</h1>
-      <p className="dk-lead">Check in, then the form resets.</p>
-      {error ? <p className="ag-err">{error}</p> : null}
+  async function checkout(id: number) {
+    await checkoutVisit(id);
+    await load();
+  }
 
-      <form className="dk-well" onSubmit={onCheckIn}>
-        <input
-          placeholder="Visitor name"
-          value={visitor.name}
-          onChange={(e) => setVisitor({ ...visitor, name: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Visitor phone"
-          value={visitor.phone}
-          onChange={(e) => setVisitor({ ...visitor, phone: e.target.value })}
-        />
-        <input
-          placeholder="Purpose"
-          value={visitor.purpose}
-          onChange={(e) => setVisitor({ ...visitor, purpose: e.target.value })}
-        />
-        <input
-          placeholder="Search host"
-          value={host ? host.name : q}
-          onChange={(e) => {
-            setHost(null);
-            setQ(e.target.value);
-          }}
-        />
-        {hits.map((row) => (
-          <button
-            type="button"
-            key={row.id}
-            className="dk-row"
-            onClick={() => {
-              setHost(row);
-              setHits([]);
-              setQ(row.name);
+  return (
+    <section className="gate">
+      <header className="gate-top">
+        <div>
+          <h1>Gate</h1>
+          <p>Log visitors and clear them out.</p>
+        </div>
+      </header>
+
+      <form className="gate-form" onSubmit={submit}>
+        <label>
+          Visitor name
+          <input value={name} onChange={(e) => setName(e.target.value)} required />
+        </label>
+        <label>
+          Phone
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+        <label>
+          Purpose
+          <input value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+        </label>
+        <label>
+          Host
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setHost(null);
             }}
-          >
-            <div>
-              <strong>{row.name}</strong>
-              <small>
-                {row.role ?? "Staff"}
-                {row.department ? ` · ${row.department}` : ""}
-                {row.phone ? ` · ${row.phone}` : ""}
-              </small>
-            </div>
-          </button>
-        ))}
-        {host?.phone ? <p className="dk-lead">Call host: {host.phone}</p> : null}
-        <button className="dk-copy" disabled={busy} type="submit">
-          {busy ? "Saving…" : "Check in"}
+            placeholder="Search staff name"
+          />
+        </label>
+        {hosts.length > 0 && !host ? (
+          <ul className="gate-hits">
+            {hosts.map((h) => (
+              <li key={h.id}>
+                <button type="button" onClick={() => { setHost(h); setQuery(h.name); setHosts([]); }}>
+                  {h.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {host ? <p className="gate-picked">Host: {host.name}</p> : null}
+        {error ? <p className="gate-err">{error}</p> : null}
+        <button type="submit" className="gate-submit" disabled={busy || !host}>
+          {busy ? "Logging…" : "Log visitor"}
         </button>
       </form>
 
-      <h2>Today</h2>
-      <div className="dk-well">
-        {today.map((row) => (
-          <div className="dk-row" key={row.id}>
-            <div>
+      <div className="gate-list">
+        {rows.length === 0 ? <p className="quiet">No visitors today.</p> : null}
+        {rows.map((row) => (
+          <article key={row.id} className="gate-card">
+            <header>
               <strong>{row.visitor_name}</strong>
-              <small>
-                {row.status} · {row.host?.name}
-                {row.hold_reason ? ` · ${row.hold_reason}` : ""}
-              </small>
-            </div>
-            {row.status === "returning" || row.status === "accepted" ? (
-              <button
-                className="dk-yes"
-                type="button"
-                onClick={() => void checkoutVisit(row.id).then(loadToday)}
-              >
-                Gate clear
-              </button>
+              <em className={`pill is-${row.status}`}>{row.status.replace("_", " ")}</em>
+            </header>
+            <p>{row.visitor_phone || "—"}</p>
+            <p>Host: {row.host?.name || "—"}</p>
+            {row.purpose ? <p>Purpose: {row.purpose}</p> : null}
+            {row.host?.phone ? (
+              <a className="gate-call" href={`tel:${row.host.phone}`}>Call host</a>
             ) : null}
-          </div>
+            {row.status !== "checked_out" ? (
+              <button type="button" onClick={() => void checkout(row.id)}>Confirm exit</button>
+            ) : null}
+          </article>
         ))}
       </div>
-    </>
+    </section>
   );
 }
