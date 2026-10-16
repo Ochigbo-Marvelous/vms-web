@@ -21,6 +21,7 @@ export type DeskVisit = {
   id: string;
   name: string;
   host: string;
+  purpose: string | null;
   status: string;
   createdAt: string | null;
 };
@@ -141,6 +142,7 @@ function toVisit(row: Record<string, unknown>): DeskVisit {
     id: String(row.id ?? ""),
     name: str(row.visitor_name) ?? "Visitor",
     host: host ?? "Unassigned",
+    purpose: str(row.purpose),
     status: str(row.status) ?? "pending",
     createdAt: str(row.created_at),
   };

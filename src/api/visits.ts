@@ -39,8 +39,11 @@ export function acceptVisit(id: number) {
   return http<{ visit: VisitRow }>(`/api/visits/${id}/accept`, { method: "POST" });
 }
 
-export function declineVisit(id: number) {
-  return http<{ visit: VisitRow }>(`/api/visits/${id}/decline`, { method: "POST" });
+export function declineVisit(id: number, reason: string) {
+  return http<{ visit: VisitRow }>(`/api/visits/${id}/decline`, {
+    method: "POST",
+    body: { reason },
+  });
 }
 
 export function holdVisit(id: number, reason: string) {

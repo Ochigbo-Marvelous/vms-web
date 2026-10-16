@@ -32,7 +32,7 @@ function when(value: string) {
 
 function clearance(row: VisitRow) {
   if (row.status === "checked_out" && row.checked_out_at) return `Cleared exit at ${when(row.checked_out_at)}`;
-  if (row.status === "accepted") return "Active on campus";
+  if (row.status === "accepted") return "Accepted by host";
   if (row.status === "returning") return "Returning to gate";
   if (row.status === "declined") return "Entry refused";
   if (row.status === "on_hold") return row.hold_reason || "On hold";
@@ -155,7 +155,7 @@ export default function AuditPage() {
           <select value={status} onChange={(event) => setStatus(event.target.value)}>
             <option value="all">All visit statuses</option>
             <option value="pending">Awaiting</option>
-            <option value="accepted">On campus</option>
+            <option value="accepted">Accepted by host</option>
             <option value="checked_out">Cleared</option>
             <option value="declined">Refused</option>
           </select>

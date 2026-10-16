@@ -951,3 +951,69 @@
 .gate-card { background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 6px 16px rgba(16, 24, 40, 0.05); display: grid; gap: 6px; }
 .gate-card header { display: flex; justify-content: space-between; align-items: center; }
 .gate-call { color: var(--red, #b71c1c); text-decoration: none; font-weight: 600; }
+
+.gate-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.gate-card {
+  padding: 16px;
+  border-radius: 12px;
+}
+.gate-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.gate-call {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--org-primary, #dd3131);
+  color: #fff;
+  text-decoration: none;
+}
+.needs-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--org-primary, #dd3131);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+}
+.dk-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  font: inherit;
+}
+
+.gate-call {
+  background: var(--red, #b71c1c);
+  color: #fff;
+}
+
+.gate-card-actions button {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--red, #b71c1c);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gate-card-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

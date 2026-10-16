@@ -25,6 +25,7 @@ export default function StaffVisitorsPage() {
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
   const [holdId, setHoldId] = useState<number | null>(null);
+  const [declineId, setDeclineId] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -74,7 +75,7 @@ export default function StaffVisitorsPage() {
       <header className="vq-top">
         <div>
           <h1>Visitors</h1>
-          <p className="dk-lead">List Refreshes every 10 seconds.</p>
+          <p className="dk-lead">List refreshes every 10 seconds.</p>
         </div>
         <div className="sv-switch" role="tablist">
           {TABS.map((tab) => (
@@ -112,16 +113,17 @@ export default function StaffVisitorsPage() {
               <p className="vq-time">Arrived {when(row.created_at)}</p>
               {row.checked_out_at ? <p className="vq-time">Cleared {when(row.checked_out_at)}</p> : null}
               {row.hold_reason ? <p className="vq-time">Hold: {row.hold_reason}</p> : null}
+              {row.decline_reason ? <p className="vq-time">Declined: {row.decline_reason}</p> : null}
 
               {row.status === "pending" || row.status === "on_hold" ? (
                 <div className="vq-actions">
                   <button className="dk-yes" disabled={busy === row.id} onClick={() => run(row.id, () => acceptVisit(row.id))}>
                     Accept
                   </button>
-                  <button className="dk-no" disabled={busy === row.id} onClick={() => { setHoldId(row.id); setReason(""); }}>
+                  <button className="dk-no" disabled={busy === row.id} onClick={() => { setHoldId(row.id); setReason(""); setDeclineId(null); }}>
                     Hold
                   </button>
-                  <button className="dk-no" disabled={busy === row.id} onClick={() => run(row.id, () => declineVisit(row.id))}>
+                  <button className="dk-no" disabled={busy === row.id} onClick={() => { setDeclineId(row.id); setReason(""); setHoldId(null); }}>
                     Decline
                   </button>
                 </div>
@@ -150,6 +152,7 @@ export default function StaffVisitorsPage() {
           }}
         >
           <input
+            className="dk-input"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Reason for hold"
@@ -157,6 +160,28 @@ export default function StaffVisitorsPage() {
             minLength={3}
           />
           <button className="dk-copy" type="submit">Hold</button>
+        </form>
+      ) : null}
+
+      {declineId ? (
+        <form
+          className="dk-code"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const id = declineId;
+            void run(id, () => declineVisit(id, reason.trim()));
+            setDeclineId(null);
+          }}
+        >
+          <input
+            className="dk-input"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason for decline"
+            required
+            minLength={3}
+          />
+          <button className="dk-copy" type="submit">Decline</button>
         </form>
       ) : null}
     </>

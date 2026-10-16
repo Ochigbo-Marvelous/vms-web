@@ -75,6 +75,7 @@ export type VisitRow = {
   purpose: string | null;
   status: string;
   hold_reason: string | null;
+  decline_reason: string | null;
   checked_out_at?: string | null;
   host_id: number;
   created_at: string;
@@ -83,5 +84,6 @@ export type VisitRow = {
     name: string;
     phone: string | null;
     avatar_path?: string | null;
+    department?: string | null;
   };
 };

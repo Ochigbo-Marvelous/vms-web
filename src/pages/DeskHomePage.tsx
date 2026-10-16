@@ -124,7 +124,7 @@ export default function DeskHomePage() {
               {stats.needs.map((item) => (
                 <li key={item.id}>
                   <div><strong>{item.title}</strong><small>{item.detail}</small></div>
-                  <Link to={item.href}>Open</Link>
+                  <Link to={item.href} className="needs-btn">Open</Link>
                 </li>
               ))}
             </ul>
@@ -149,7 +149,11 @@ export default function DeskHomePage() {
             <ul className="needs">
               {stats.latest.map((row) => (
                 <li key={row.id}>
-                  <div><strong>{row.name}</strong><small>{row.host}</small></div>
+                  <div>
+                    <strong>{row.name}</strong>
+                    <small>{row.host}</small>
+                    {row.purpose ? <small> · {row.purpose}</small> : null}
+                  </div>
                   <em className={`pill is-${row.status}`}>{row.status.replace("_", " ")}</em>
                 </li>
               ))}
